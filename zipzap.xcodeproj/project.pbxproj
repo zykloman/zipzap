@@ -548,6 +548,7 @@
 		D899CF7C162C5E8400112F49 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				ONLY_ACTIVE_ARCH = YES;
 			};
 			name = Debug;
@@ -555,6 +556,7 @@
 		D899CF7D162C5E8400112F49 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "3rd Party Mac Developer Application";
 			};
 			name = Release;
 		};
