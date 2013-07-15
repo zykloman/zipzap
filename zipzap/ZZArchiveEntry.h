@@ -149,7 +149,7 @@
 /**
  * Checks whether the entry file is consistent.
  *
- * @param The error information when an error occurs. Pass in *nil* if you do not want error information.
+ * @param error The error information when an error occurs. Pass in *nil* if you do not want error information.
  * @return Whether entry file is consistent or not.
  *
  * @remarks Checks whether the local file entry is consistent with the central file entry and also that
