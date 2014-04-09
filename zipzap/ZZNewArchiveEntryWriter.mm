@@ -10,6 +10,7 @@
 
 #import "ZZChannelOutput.h"
 #import "ZZDeflateOutputStream.h"
+#import "ZZScopeGuard.h"
 #import "ZZNewArchiveEntryWriter.h"
 #import "ZZStoreOutputStream.h"
 #import "ZZHeaders.h"
@@ -57,8 +58,8 @@ namespace ZZDataConsumer
 	{
 		// allocate central, local file headers with enough space for file name
 		NSUInteger fileNameLength = [fileName lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-		_centralFileHeader = [NSMutableData dataWithLength:sizeof(ZZCentralFileHeader) + fileNameLength];
-		_localFileHeader = [NSMutableData dataWithLength:sizeof(ZZLocalFileHeader) + fileNameLength];
+		_centralFileHeader = [[NSMutableData alloc] initWithLength:sizeof(ZZCentralFileHeader) + fileNameLength];
+		_localFileHeader = [[NSMutableData alloc] initWithLength:sizeof(ZZLocalFileHeader) + fileNameLength];
 		
 		ZZCentralFileHeader* centralFileHeader = [self centralFileHeader];
 		centralFileHeader->signature = ZZCentralFileHeader::sign;
@@ -72,36 +73,36 @@ namespace ZZDataConsumer
 		centralFileHeader->versionNeededToExtract = localFileHeader->versionNeededToExtract = 0x000a;
 		
 		// general purpose flag = approximate compression level + use of data descriptor (bit 3) + language encoding flag (EFS, bit 11)
-		uint32_t compressionFlag;
+		ZZGeneralPurposeBitFlag compressionFlag;
 		switch (compressionLevel)
 		{
 			case -1:
 			default:
-				compressionFlag = 0x0;
+				compressionFlag = ZZGeneralPurposeBitFlag::normalCompression;
 				break;
 			case 1:
 			case 2:
 				// super fast (-es)
-				compressionFlag = 0x3;
+				compressionFlag = ZZGeneralPurposeBitFlag::superFastCompression;
 				break;
 			case 3:
 			case 4:
 				// fast (-ef)
-				compressionFlag = 0x2;
+				compressionFlag = ZZGeneralPurposeBitFlag::fastCompression;
 				break;
 			case 5:
 			case 6:
 			case 7:
 				// normal (-en)
-				compressionFlag = 0x0;
+				compressionFlag = ZZGeneralPurposeBitFlag::normalCompression;
 				break;
 			case 8:
 			case 9:
 				// maximum (-ex)
-				compressionFlag = 0x1;
+				compressionFlag = ZZGeneralPurposeBitFlag::maximumCompression;
 				break;
 		}
-		centralFileHeader->generalPurposeBitFlag = localFileHeader->generalPurposeBitFlag = compressionFlag | (1 << 3) | (1 << 11);
+		centralFileHeader->generalPurposeBitFlag = localFileHeader->generalPurposeBitFlag = compressionFlag | ZZGeneralPurposeBitFlag::sizeInDataDescriptor | ZZGeneralPurposeBitFlag::fileNameUTF8Encoded;
 
 		centralFileHeader->compressionMethod = localFileHeader->compressionMethod = compressionLevel ? ZZCompressionMethod::deflated : ZZCompressionMethod::stored;
 		
@@ -172,12 +173,13 @@ namespace ZZDataConsumer
 }
 
 - (BOOL)writeLocalFileToChannelOutput:(id<ZZChannelOutput>)channelOutput
-								error:(NSError**)error
+					  withInitialSkip:(uint32_t)initialSkip
+								error:(out NSError**)error
 {
 	ZZCentralFileHeader* centralFileHeader = [self centralFileHeader];
 	
 	// save current offset, then write out all of local file to the file handle
-	centralFileHeader->relativeOffsetOfLocalHeader = [channelOutput offset];
+	centralFileHeader->relativeOffsetOfLocalHeader = [channelOutput offset] + initialSkip;
 	if (![channelOutput writeData:_localFileHeader
 							error:error])
 		return NO;
@@ -190,22 +192,36 @@ namespace ZZDataConsumer
 		// use of one the blocks to write to a stream that deflates directly to the output file handle
 		ZZDeflateOutputStream* outputStream = [[ZZDeflateOutputStream alloc] initWithChannelOutput:channelOutput
 																				  compressionLevel:_compressionLevel];
-		[outputStream open];
-		@try
 		{
+			[outputStream open];
+			ZZScopeGuard outputStreamCloser(^{[outputStream close];});
+			
 			if (_dataBlock)
 			{
-				NSData* data = _dataBlock(error);
-				if (!data)
+				NSError* err = nil;
+				BOOL bad = YES;
+				@autoreleasepool
+				{
+					NSData* data = _dataBlock(&err);
+					if (data)
+					{
+						const uint8_t* bytes;
+						NSUInteger bytesToWrite;
+						NSUInteger bytesWritten;
+						for (bytes = (const uint8_t*)data.bytes, bytesToWrite = data.length;
+							 bytesToWrite > 0;
+							 bytes += bytesWritten, bytesToWrite -= bytesWritten)
+							bytesWritten = [outputStream write:bytes maxLength:bytesToWrite];
+						
+						bad = NO;
+					}
+				}
+				if (bad)
+				{
+					*error = err;
 					return NO;
-
-				const uint8_t* bytes;
-				NSUInteger bytesToWrite;
-				NSUInteger bytesWritten;
-				for (bytes = (const uint8_t*)data.bytes, bytesToWrite = data.length;
-					 bytesToWrite > 0;
-					 bytes += bytesWritten, bytesToWrite -= bytesWritten)
-					bytesWritten = [outputStream write:bytes maxLength:bytesToWrite];
+				}
+				
 			}
 			else if (_streamBlock)
 			{
@@ -215,20 +231,11 @@ namespace ZZDataConsumer
 			else if (_dataConsumerBlock)
 			{
 				CGDataConsumerRef dataConsumer = CGDataConsumerCreate((__bridge void*)outputStream, &ZZDataConsumer::callbacks);
-				@try
-				{
-					if (!_dataConsumerBlock(dataConsumer, error))
-						return NO;
-				}
-				@finally
-				{
-					CGDataConsumerRelease(dataConsumer);
-				}
+				ZZScopeGuard dataConsumerReleaser(^{CGDataConsumerRelease(dataConsumer);});
+
+				if (!_dataConsumerBlock(dataConsumer, error))
+					return NO;
 			}
-		}
-		@finally
-		{
-			[outputStream close];
 		}
 		
 		dataDescriptor.crc32 = outputStream.crc32;
@@ -239,23 +246,35 @@ namespace ZZDataConsumer
 	{
 		if (_dataBlock)
 		{
-			// if data block, write the data directly to output file handle
-			NSData* data = _dataBlock(error);
-			if (!data
-				|| ![channelOutput writeData:data error:error])
-				return NO;
+			NSError* err = nil;
+			BOOL bad = YES;
+			@autoreleasepool
+			{
+				// if data block, write the data directly to output file handle
+				NSData* data = _dataBlock(&err);
+				if (data && [channelOutput writeData:data error:&err])
+				{
+					dataDescriptor.compressedSize = dataDescriptor.uncompressedSize = (uint32_t)data.length;
+					dataDescriptor.crc32 = (uint32_t)crc32(0, (const Bytef*)data.bytes, dataDescriptor.uncompressedSize);
+					bad = NO;
+				}
+			}
 			
-			dataDescriptor.compressedSize = dataDescriptor.uncompressedSize = (uint32_t)data.length;
-			dataDescriptor.crc32 = (uint32_t)crc32(0, (const Bytef*)data.bytes, dataDescriptor.uncompressedSize);
+			if (bad)
+			{
+				*error = err;
+				return NO;
+			}
 		}
 		else
 		{
 			// if stream block, data consumer block or no block, use to write to a stream that just outputs to the output file handle
 			ZZStoreOutputStream* outputStream = [[ZZStoreOutputStream alloc] initWithChannelOutput:channelOutput];
-			[outputStream open];
 			
-			@try
 			{
+				[outputStream open];
+				ZZScopeGuard outputStreamCloser(^{[outputStream close];});
+				
 				if (_streamBlock)
 				{
 					if (!_streamBlock(outputStream, error))
@@ -264,20 +283,11 @@ namespace ZZDataConsumer
 				else if (_dataConsumerBlock)
 				{
 					CGDataConsumerRef dataConsumer = CGDataConsumerCreate((__bridge void*)outputStream, &ZZDataConsumer::callbacks);
-					@try
-					{
-						if (!_dataConsumerBlock(dataConsumer, error))
-							return NO;
-					}
-					@finally
-					{
-						CGDataConsumerRelease(dataConsumer);
-					}
+					ZZScopeGuard dataConsumerReleaser(^{CGDataConsumerRelease(dataConsumer);});
+					
+					if (!_dataConsumerBlock(dataConsumer, error))
+						return NO;
 				}
-			}
-			@finally
-			{
-				[outputStream close];
 			}
 			
 			dataDescriptor.crc32 = outputStream.crc32;
@@ -299,7 +309,7 @@ namespace ZZDataConsumer
 }
 
 - (BOOL)writeCentralFileHeaderToChannelOutput:(id<ZZChannelOutput>)channelOutput
-										error:(NSError**)error
+										error:(out NSError**)error
 
 {
 	return [channelOutput writeData:_centralFileHeader

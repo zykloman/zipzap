@@ -12,17 +12,16 @@
 
 @interface ZZDataChannelOutput : NSObject <ZZChannelOutput>
 
-- (id)initWithData:(NSMutableData*)data
-		offsetBias:(uint32_t)offsetBias;
+- (id)initWithData:(NSMutableData*)data;
 
 - (uint32_t)offset;
 - (BOOL)seekToOffset:(uint32_t)offset
-			   error:(NSError**)error;
+			   error:(out NSError**)error;
 
 - (BOOL)writeData:(NSData*)data
-			error:(NSError**)error;
+			error:(out NSError**)error;
 - (BOOL)truncateAtOffset:(uint32_t)offset
-				   error:(NSError**)error;
+				   error:(out NSError**)error;
 - (void)close;
 
 @end

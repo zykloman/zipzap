@@ -10,15 +10,9 @@
 #import "ZZOldArchiveEntryWriter.h"
 #import "ZZHeaders.h"
 
-@interface ZZOldArchiveEntryWriter ()
-
-- (ZZCentralFileHeader*)centralFileHeader;
-
-@end;
-
 @implementation ZZOldArchiveEntryWriter
 {
-	NSMutableData* _centralFileHeader;
+	NSData* _centralFileHeader;
 	uint32_t _localFileLength;
 	NSData* _localFile;
 }
@@ -29,22 +23,32 @@
 {
 	if ((self = [super init]))
 	{
-		// copy the central header bytes
-		_centralFileHeader = [NSMutableData dataWithBytes:centralFileHeader
-												   length:(uint8_t*)centralFileHeader->nextCentralFileHeader() - (uint8_t*)centralFileHeader];
+		size_t centralFileLength = (uint8_t*)centralFileHeader->nextCentralFileHeader() - (uint8_t*)centralFileHeader;
 		
 		_localFileLength = (uint32_t)((const uint8_t*)localFileHeader->nextLocalFileHeader(centralFileHeader->compressedSize) - (const uint8_t*)localFileHeader);
+
+		if (shouldSkipLocalFile)
+		{
+			// reference the central header bytes: original memory map will be intact when writing, we're not changing the header
+			// don't reference the local file: since we skip the local file, don't need to reference it
+			_centralFileHeader = [NSData dataWithBytesNoCopy:centralFileHeader
+													  length:centralFileLength
+												freeWhenDone:NO];
+			_localFile = nil;
+		}
+		else
+		{
+			// copy the central header bytes: we change the header so we need to make a copy first
+			// reference the local file: original memory map will be intact when writing
+			_centralFileHeader = [[NSMutableData alloc] initWithBytes:centralFileHeader
+															   length:centralFileLength];
 		
-		// if we can skip local file i.e. because this old entry has not changed position in the zip file entries
-		// don't copy the local file bytes
-		_localFile = shouldSkipLocalFile ? nil : [NSData dataWithBytes:localFileHeader length:_localFileLength];
+			_localFile = [NSData dataWithBytesNoCopy:localFileHeader
+											  length:_localFileLength
+										freeWhenDone:NO];
+		}
 	}
 	return self;
-}
-
-- (ZZCentralFileHeader*)centralFileHeader
-{
-	return (ZZCentralFileHeader*)_centralFileHeader.mutableBytes;
 }
 
 - (uint32_t)offsetToLocalFileEnd
@@ -52,16 +56,17 @@
 	if (_localFile)
 		return 0;
 	else
-		return [self centralFileHeader]->relativeOffsetOfLocalHeader + _localFileLength;
+		return ((const ZZCentralFileHeader*)_centralFileHeader.bytes)->relativeOffsetOfLocalHeader + _localFileLength;
 }
 
 - (BOOL)writeLocalFileToChannelOutput:(id<ZZChannelOutput>)channelOutput
-								error:(NSError**)error
+					  withInitialSkip:(uint32_t)initialSkip
+								error:(out NSError**)error
 {
 	if (_localFile)
 	{
 		// can't skip: save the offset, then write out the local file bytes
-		[self centralFileHeader]->relativeOffsetOfLocalHeader = [channelOutput offset];
+		((ZZCentralFileHeader*)((NSMutableData*)_centralFileHeader).mutableBytes)->relativeOffsetOfLocalHeader = [channelOutput offset] + initialSkip;
 		return [channelOutput writeData:_localFile
 								  error:error];
 	}
@@ -70,7 +75,7 @@
 }
 
 - (BOOL)writeCentralFileHeaderToChannelOutput:(id<ZZChannelOutput>)channelOutput
-										error:(NSError**)error
+										error:(out NSError**)error
 {
 	return [channelOutput writeData:_centralFileHeader
 							  error:error];

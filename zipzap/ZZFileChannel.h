@@ -16,13 +16,12 @@
 
 - (id)initWithURL:(NSURL*)URL;
 
-- (instancetype)temporaryChannel:(NSError**)error;
+- (instancetype)temporaryChannel:(out NSError**)error;
 - (BOOL)replaceWithChannel:(id<ZZChannel>)channel
-					 error:(NSError**)error;
+					 error:(out NSError**)error;
 - (void)removeAsTemporary;
 
-- (NSData*)openInput:(NSError**)error;
-- (id<ZZChannelOutput>)openOutputWithOffsetBias:(uint32_t)offsetBias
-										  error:(NSError**)error;
+- (NSData*)newInput:(out NSError**)error;
+- (id<ZZChannelOutput>)newOutput:(out NSError**)error;
 
 @end

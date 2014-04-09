@@ -1,9 +1,8 @@
 //
-//  zipzap.h
+//  ZZConstants.h
 //  zipzap
 //
-//  Created by Glen Low on 31/10/12.
-//  Copyright (c) 2012, Pixelglow Software. All rights reserved.
+//  Created by Daniel Cohen Gindi on 12/29/13.
 //
 
 //
@@ -30,7 +29,17 @@
 //  THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#import <zipzap/ZZArchive.h>
-#import <zipzap/ZZArchiveEntry.h>
-#import <zipzap/ZZConstants.h>
-#import <zipzap/ZZError.h>
+typedef NS_ENUM(NSInteger, ZZEncryptionMode)
+{
+	ZZEncryptionModeNone,
+	ZZEncryptionModeStandard,
+	ZZEncryptionModeStrong,
+	ZZEncryptionModeWinZipAES
+};
+
+typedef NS_ENUM(uint8_t, ZZAESEncryptionStrength)
+{
+	ZZAESEncryptionStrength128 = 0x01,
+	ZZAESEncryptionStrength192 = 0x02,
+	ZZAESEncryptionStrength256 = 0x03
+};
