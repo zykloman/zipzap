@@ -453,7 +453,7 @@
 			name = zipzapTests;
 			productName = zipzapTests;
 			productReference = D899CF96162C5EC100112F49 /* zipzapTests.xctest */;
-			productType = "com.apple.product-type.bundle";
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		D899CFAF162C5EEB00112F49 /* zipzap (iOS) */ = {
 			isa = PBXNativeTarget;
@@ -674,6 +674,7 @@
 				);
 				PRODUCT_NAME = zipzap;
 				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
@@ -713,6 +714,7 @@
 				);
 				PRODUCT_NAME = zipzap;
 				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
