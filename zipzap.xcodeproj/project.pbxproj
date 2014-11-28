@@ -18,7 +18,7 @@
 		D83425611876747200E7A559 /* ZZInflateInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = D834255F1876747200E7A559 /* ZZInflateInputStream.m */; };
 		D834256318767E1900E7A559 /* ZZStandardDecryptInputStream.mm in Sources */ = {isa = PBXBuildFile; fileRef = D834256218767E1900E7A559 /* ZZStandardDecryptInputStream.mm */; };
 		D834256418767E1900E7A559 /* ZZStandardDecryptInputStream.mm in Sources */ = {isa = PBXBuildFile; fileRef = D834256218767E1900E7A559 /* ZZStandardDecryptInputStream.mm */; };
-		D8366ACE16B1F8B400BC012E /* ZZError.h in Headers */ = {isa = PBXBuildFile; fileRef = D8366ACC16B1F8B400BC012E /* ZZError.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D8366ACE16B1F8B400BC012E /* ZZError.h in Headers */ = {isa = PBXBuildFile; fileRef = D8366ACC16B1F8B400BC012E /* ZZError.h */; };
 		D8366ACF16B1F8B400BC012E /* ZZError.m in Sources */ = {isa = PBXBuildFile; fileRef = D8366ACD16B1F8B400BC012E /* ZZError.m */; };
 		D8366AD016B1F8B400BC012E /* ZZError.m in Sources */ = {isa = PBXBuildFile; fileRef = D8366ACD16B1F8B400BC012E /* ZZError.m */; };
 		D84A449F16A0D91B00CF00A9 /* ZZChannel.h in Headers */ = {isa = PBXBuildFile; fileRef = D84A449E16A0D91B00CF00A9 /* ZZChannel.h */; };
@@ -35,7 +35,7 @@
 		D84A44CF16A0F8B400CF00A9 /* ZZDataChannelOutput.h in Headers */ = {isa = PBXBuildFile; fileRef = D84A44CD16A0F8B400CF00A9 /* ZZDataChannelOutput.h */; };
 		D84A44D016A0F8B400CF00A9 /* ZZDataChannelOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = D84A44CE16A0F8B400CF00A9 /* ZZDataChannelOutput.m */; };
 		D84A44D116A0F8B400CF00A9 /* ZZDataChannelOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = D84A44CE16A0F8B400CF00A9 /* ZZDataChannelOutput.m */; };
-		D86B400C18A8A0BA00017A91 /* ZZConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B50392518706368002B2B12 /* ZZConstants.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D86B400C18A8A0BA00017A91 /* ZZConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B50392518706368002B2B12 /* ZZConstants.h */; };
 		D86B400D18A8A0DA00017A91 /* ZZConstants.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B50392518706368002B2B12 /* ZZConstants.h */; };
 		D86B400E18A8A0FF00017A91 /* ZZError.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D8366ACC16B1F8B400BC012E /* ZZError.h */; };
 		D88E8DFF16375C66002207B3 /* dog.jpg in Resources */ = {isa = PBXBuildFile; fileRef = D88E8DFD16375C66002207B3 /* dog.jpg */; };
@@ -47,10 +47,10 @@
 		D88E8E0C16394B49002207B3 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D88E8E0B16394B49002207B3 /* ApplicationServices.framework */; };
 		D899CF9C162C5EC100112F49 /* libzipzap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D899CF82162C5EC100112F49 /* libzipzap.a */; };
 		D899CFA2162C5EC100112F49 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D899CFA0162C5EC100112F49 /* InfoPlist.strings */; };
-		D899CFEA162C608300112F49 /* ZZArchiveEntry.h in Headers */ = {isa = PBXBuildFile; fileRef = D899CFD8162C608300112F49 /* ZZArchiveEntry.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D899CFEA162C608300112F49 /* ZZArchiveEntry.h in Headers */ = {isa = PBXBuildFile; fileRef = D899CFD8162C608300112F49 /* ZZArchiveEntry.h */; };
 		D899CFEB162C608300112F49 /* ZZArchiveEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = D899CFD9162C608300112F49 /* ZZArchiveEntry.m */; };
 		D899CFEC162C608300112F49 /* ZZArchiveEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = D899CFD9162C608300112F49 /* ZZArchiveEntry.m */; };
-		D899CFED162C608300112F49 /* ZZArchive.h in Headers */ = {isa = PBXBuildFile; fileRef = D899CFDA162C608300112F49 /* ZZArchive.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D899CFED162C608300112F49 /* ZZArchive.h in Headers */ = {isa = PBXBuildFile; fileRef = D899CFDA162C608300112F49 /* ZZArchive.h */; };
 		D899CFEE162C608300112F49 /* ZZArchive.mm in Sources */ = {isa = PBXBuildFile; fileRef = D899CFDB162C608300112F49 /* ZZArchive.mm */; };
 		D899CFEF162C608300112F49 /* ZZArchive.mm in Sources */ = {isa = PBXBuildFile; fileRef = D899CFDB162C608300112F49 /* ZZArchive.mm */; };
 		D899CFF0162C608300112F49 /* ZZInflateInputStream.h in Headers */ = {isa = PBXBuildFile; fileRef = D899CFDC162C608300112F49 /* ZZInflateInputStream.h */; };
@@ -81,7 +81,7 @@
 		D8ABBF3E18883528002858BE /* ZZAESDecryptInputStream.h in Headers */ = {isa = PBXBuildFile; fileRef = D8ABBF3C18883528002858BE /* ZZAESDecryptInputStream.h */; };
 		D8ABBF3F18883528002858BE /* ZZAESDecryptInputStream.mm in Sources */ = {isa = PBXBuildFile; fileRef = D8ABBF3D18883528002858BE /* ZZAESDecryptInputStream.mm */; };
 		D8ABBF4018883528002858BE /* ZZAESDecryptInputStream.mm in Sources */ = {isa = PBXBuildFile; fileRef = D8ABBF3D18883528002858BE /* ZZAESDecryptInputStream.mm */; };
-		D8B0FD621640A6B000727A70 /* zipzap.h in Headers */ = {isa = PBXBuildFile; fileRef = D8B0FD611640A6B000727A70 /* zipzap.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D8B0FD621640A6B000727A70 /* zipzap.h in Headers */ = {isa = PBXBuildFile; fileRef = D8B0FD611640A6B000727A70 /* zipzap.h */; };
 		D8B0FD661640A77F00727A70 /* zipzap.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D8B0FD611640A6B000727A70 /* zipzap.h */; };
 		D8B0FD671640A77F00727A70 /* ZZArchive.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D899CFDA162C608300112F49 /* ZZArchive.h */; };
 		D8B0FD681640A77F00727A70 /* ZZArchiveEntry.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = D899CFD8162C608300112F49 /* ZZArchiveEntry.h */; };
